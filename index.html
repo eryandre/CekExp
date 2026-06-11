@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <title>Cek Retur Barang - Bebas Jumlah Hari / Bulan</title>
+    <!-- Bootstrap 5 + Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <style>
+      body {
+        background: linear-gradient(145deg, #eef2f7 0%, #dce5ed 100%);
+        min-height: 100vh;
+        font-family: "Inter", system-ui, "Segoe UI", sans-serif;
+      }
+      .card-retur {
+        border-radius: 2rem;
+        border: none;
+        background: rgba(255, 255, 255, 0.97);
+        box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s;
+      }
+      .card-retur:hover {
+        transform: translateY(-3px);
+      }
+      .btn-check-return {
+        background: #0d6efd;
+        border-radius: 60px;
+        padding: 12px 20px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.2s;
+      }
+      .btn-check-return:hover {
+        background: #0b5ed7;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -8px #0d6efd;
+      }
+      .form-control-lg,
+      .form-select-lg {
+        border-radius: 1.2rem;
+        border: 1px solid #cbdde9;
+        padding: 0.7rem 1rem;
+      }
+      .result-card {
+        border-radius: 1.2rem;
+        border-left: 6px solid;
+        transition: all 0.2s;
+      }
+      .input-group-custom {
+        border-radius: 1.2rem;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+      .input-group-custom input,
+      .input-group-custom select {
+        border: 1px solid #cbdde9;
+        padding: 0.7rem 1rem;
+      }
+      .input-group-custom input:focus,
+      .input-group-custom select:focus {
+        z-index: 1;
+      }
+      footer {
+        font-size: 0.7rem;
+        opacity: 0.7;
+      }
+      @media (max-width: 576px) {
+        .card-retur {
+          margin: 0 0.8rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container py-4 py-md-5">
+      <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-12">
+          <div class="card card-retur">
+            <div
+              class="card-header bg-transparent border-0 pt-4 pb-2 text-center"
+            >
+              <i class="bi bi-arrow-return-left fs-1 text-primary"></i>
+              <h1 class="h3 fw-bold mt-2">Cek Batas Retur Barang</h1>
+              <p class="text-secondary-emphasis">
+                Masukkan tanggal expired & kebijakan retur (hari/bulan)
+              </p>
+            </div>
+            <div class="card-body p-4 p-md-5 pt-0">
+              <form id="returnForm" novalidate>
+                <!-- Tanggal Expired -->
+                <div class="mb-4">
+                  <label class="form-label fw-semibold"
+                    ><i class="bi bi-calendar-x me-1"></i> Tanggal
+                    Kedaluwarsa</label
+                  >
+                  <input
+                    type="date"
+                    id="expiredDate"
+                    class="form-control form-control-lg"
+                    required
+                  />
+                  <div class="form-text">Pilih tanggal expired barang.</div>
+                </div>
+
+                <!-- Maksimal Retur: input number + satuan -->
+                <div class="mb-4">
+                  <label class="form-label fw-semibold"
+                    ><i class="bi bi-hourglass-split me-1"></i> Maksimal Retur
+                    (sebelum expired)</label
+                  >
+                  <div class="input-group input-group-custom">
+                    <input
+                      type="number"
+                      id="returnValue"
+                      class="form-control form-control-lg"
+                      value="14"
+                      min="1"
+                      step="1"
+                      style="
+                        border-top-right-radius: 0;
+                        border-bottom-right-radius: 0;
+                      "
+                    />
+                    <select
+                      id="returnUnit"
+                      class="form-select form-select-lg"
+                      style="
+                        max-width: 130px;
+                        border-top-left-radius: 0;
+                        border-bottom-left-radius: 0;
+                      "
+                    >
+                      <option value="days">Hari</option>
+                      <option value="months" selected>Bulan</option>
+                    </select>
+                  </div>
+                  <div class="form-text mt-1">
+                    <i class="bi bi-info-circle-fill text-info"></i> Contoh: 14
+                    Hari, 7 Hari, 3 Bulan, 6 Bulan. (Angka minimal 1)
+                  </div>
+                </div>
+
+                <div class="d-grid">
+                  <button
+                    type="button"
+                    id="checkReturnBtn"
+                    class="btn btn-primary btn-check-return btn-lg"
+                  >
+                    <i class="bi bi-check2-circle me-2"></i> Cek Kelayakan Retur
+                  </button>
+                </div>
+              </form>
+
+              <!-- Area hasil pengecekan -->
+              <div id="resultPanel" style="display: none" class="mt-5">
+                <div id="resultContent" class="result-card p-3">
+                  <!-- isi dynamic -->
+                </div>
+              </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-center pb-4">
+              <footer>
+                ⏱ Sistem untuk menghitung batas retur produk.
+              </footer>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        // DOM Elements
+        const expiredDateInput = document.getElementById("expiredDate");
+        const returnValueInput = document.getElementById("returnValue");
+        const returnUnitSelect = document.getElementById("returnUnit");
+        const checkBtn = document.getElementById("checkReturnBtn");
+        const resultPanel = document.getElementById("resultPanel");
+        const resultContent = document.getElementById("resultContent");
+
+        // --- Helper: format tanggal ke DD/MM/YYYY ---
+        function formatToDMY(date) {
+          if (!(date instanceof Date) || isNaN(date.getTime())) return "—";
+          const day = String(date.getDate()).padStart(2, "0");
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
+        }
+
+        // --- reset waktu (ignor jam) untuk perbandingan tanggal murni ---
+        function resetTime(date) {
+          return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        }
+
+        /**
+         *  Mengurangi bulan dari tanggal dengan penanganan akhir bulan.
+         *  Contoh: 31 Maret - 1 bulan -> 28/29 Feb.
+         */
+        function subtractMonthsSafe(date, months) {
+          if (!(date instanceof Date) || isNaN(date.getTime()) || months < 0)
+            return null;
+          const originalDay = date.getDate();
+          let targetMonth = date.getMonth() - months;
+          let targetYear = date.getFullYear();
+          if (targetMonth < 0) {
+            const years = Math.ceil(Math.abs(targetMonth) / 12);
+            targetYear -= years;
+            targetMonth += years * 12;
+          }
+          targetMonth = ((targetMonth % 12) + 12) % 12;
+          const daysInTargetMonth = new Date(
+            targetYear,
+            targetMonth + 1,
+            0
+          ).getDate();
+          const adjustedDay = Math.min(originalDay, daysInTargetMonth);
+          return new Date(targetYear, targetMonth, adjustedDay);
+        }
+
+        /**
+         *  Mengurangi jumlah hari dari tanggal.
+         */
+        function subtractDays(date, days) {
+          if (!(date instanceof Date) || isNaN(date.getTime()) || days < 0)
+            return null;
+          const newDate = new Date(date);
+          newDate.setDate(date.getDate() - days);
+          return newDate;
+        }
+
+        // --- Validasi dan parsing input number + unit ---
+        function getReturnDuration() {
+          let rawValue = returnValueInput.value.trim();
+          if (rawValue === "")
+            return { valid: false, message: "Jumlah retur harus diisi." };
+          let num = Number(rawValue);
+          if (isNaN(num) || !Number.isInteger(num) || num < 1) {
+            return {
+              valid: false,
+              message: "Jumlah retur harus bilangan bulat positif (minimal 1).",
+            };
+          }
+          const unit = returnUnitSelect.value; // 'days' or 'months'
+          return { valid: true, value: num, unit: unit };
+        }
+
+        // --- Fungsi utama pengecekan ---
+        function checkReturnEligibility() {
+          // 1. Validasi tanggal expired
+          const expiredRaw = expiredDateInput.value.trim();
+          if (!expiredRaw) {
+            showErrorResult("Tanggal kedaluwarsa harus diisi!", "warning");
+            return;
+          }
+
+          const dateParts = expiredRaw.split("-");
+          if (dateParts.length !== 3) {
+            showErrorResult(
+              "Format tanggal tidak valid, gunakan YYYY-MM-DD.",
+              "danger"
+            );
+            return;
+          }
+
+          const year = parseInt(dateParts[0], 10);
+          const month = parseInt(dateParts[1], 10) - 1;
+          const day = parseInt(dateParts[2], 10);
+          const expiredDate = new Date(year, month, day);
+          if (isNaN(expiredDate.getTime())) {
+            showErrorResult(
+              "Tanggal expired tidak sah. Periksa kembali.",
+              "danger"
+            );
+            return;
+          }
+
+          // 2. Validasi input retur (angka + satuan)
+          const retur = getReturnDuration();
+          if (!retur.valid) {
+            showErrorResult(retur.message, "warning");
+            return;
+          }
+
+          // 3. Hitung batas retur berdasarkan unit
+          let deadlineDate = null;
+          let durationText = "";
+          if (retur.unit === "days") {
+            deadlineDate = subtractDays(expiredDate, retur.value);
+            durationText = `${retur.value} hari sebelum expired`;
+          } else {
+            // months
+            deadlineDate = subtractMonthsSafe(expiredDate, retur.value);
+            durationText = `${retur.value} bulan sebelum expired`;
+          }
+
+          if (!deadlineDate || isNaN(deadlineDate.getTime())) {
+            showErrorResult(
+              "Gagal menghitung batas retur. Coba dengan nilai yang lebih kecil.",
+              "danger"
+            );
+            return;
+          }
+
+          // 4. Hari ini (tanpa jam)
+          const todayClear = resetTime(new Date());
+          const deadlineClear = resetTime(deadlineDate);
+          const expiredClear = resetTime(expiredDate);
+
+          // 5. Evaluasi
+          const isReturnable = todayClear <= deadlineClear;
+          let statusTitle = "";
+          let statusIcon = "";
+          let alertClass = "";
+
+          if (isReturnable) {
+            statusTitle = "✅ MASIH dalam masa retur";
+            statusIcon =
+              '<i class="bi bi-check-circle-fill fs-2 text-success"></i>';
+            alertClass = "alert-success";
+          } else {
+            statusTitle = "❌ SUDAH MELEWATI batas retur";
+            statusIcon = '<i class="bi bi-x-circle-fill fs-2 text-danger"></i>';
+            alertClass = "alert-danger";
+          }
+
+          // Informasi tambahan status expired
+          let expiredStatusBadge = "";
+          if (todayClear > expiredClear) {
+            expiredStatusBadge =
+              '<span class="badge bg-secondary ms-2"><i class="bi bi-hourglass-bottom"></i> Sudah Kedaluwarsa</span>';
+          } else if (todayClear.getTime() === expiredClear.getTime()) {
+            expiredStatusBadge =
+              '<span class="badge bg-warning text-dark ms-2"><i class="bi bi-exclamation-triangle"></i> Expired Hari Ini</span>';
+          } else {
+            expiredStatusBadge =
+              '<span class="badge bg-info text-dark ms-2"><i class="bi bi-calendar-check"></i> Belum Kadaluarsa</span>';
+          }
+
+          // Format tanggal display
+          const formattedExpired = formatToDMY(expiredDate);
+          const formattedDeadline = formatToDMY(deadlineDate);
+          const formattedToday = formatToDMY(todayClear);
+
+          // Rekomendasi deskriptif
+          let recommendationMsg = "";
+          if (isReturnable) {
+            recommendationMsg = `📦 Barang masih dapat diretur hingga <strong>${formattedDeadline}</strong>. Segera proses retur sebelum batas akhir.`;
+          } else {
+            if (todayClear > expiredClear) {
+              recommendationMsg = `⚠️ Barang sudah kedaluwarsa (${formattedExpired}) dan melewati batas retur (${formattedDeadline}). Tidak bisa retur.`;
+            } else {
+              recommendationMsg = `⛔ Batas retur terlewat sejak ${formattedDeadline}. Saat ini (${formattedToday}) tidak memenuhi syarat retur.`;
+            }
+          }
+
+          // Badge unit yang dipilih user
+          let unitBadge = "";
+          if (retur.unit === "days") {
+            unitBadge = `<span class="badge bg-primary-subtle text-primary-emphasis px-3 py-2 rounded-pill">⏱️ ${retur.value} Hari</span>`;
+          } else {
+            unitBadge = `<span class="badge bg-primary-subtle text-primary-emphasis px-3 py-2 rounded-pill">📆 ${retur.value} Bulan</span>`;
+          }
+
+          // Build HTML lengkap
+          const resultHTML = `
+                <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 mb-3">
+                    <div class="text-center text-sm-start">${statusIcon}</div>
+                    <div class="flex-grow-1">
+                        <h4 class="fw-bold mb-1">${statusTitle}</h4>
+                        <p class="mb-0">${recommendationMsg}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6">
+                        <div class="bg-light bg-opacity-50 p-2 rounded-3">
+                            <small class="text-secondary"><i class="bi bi-calendar-event"></i> Tanggal Expired</small><br>
+                            <span class="fw-semibold fs-6">${formattedExpired}</span> ${expiredStatusBadge}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="bg-light bg-opacity-50 p-2 rounded-3">
+                            <small class="text-secondary"><i class="bi bi-arrow-repeat"></i> Kebijakan Retur</small><br>
+                            ${unitBadge} <span class="text-muted ms-1">(sebelum expired)</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="bg-light bg-opacity-50 p-2 rounded-3">
+                            <small class="text-secondary"><i class="bi bi-calendar-range"></i> Batas Akhir Retur</small><br>
+                            <span class="fw-bold text-primary">${formattedDeadline}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="bg-light bg-opacity-50 p-2 rounded-3">
+                            <small class="text-secondary"><i class="bi bi-calendar-today"></i> Hari ini (referensi)</small><br>
+                            <span>${formattedToday}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+          // Tampilkan panel hasil
+          resultPanel.style.display = "block";
+          resultContent.className = `result-card p-3 alert ${alertClass} border-0`;
+          resultContent.innerHTML = resultHTML;
+
+          // smooth scroll ke hasil
+          resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
+        // Fungsi untuk menampilkan error atau peringatan
+        function showErrorResult(message, type = "warning") {
+          let alertType = "";
+          let icon = "";
+          if (type === "warning") {
+            alertType = "alert-warning";
+            icon = '<i class="bi bi-exclamation-triangle-fill fs-3"></i>';
+          } else {
+            alertType = "alert-danger";
+            icon = '<i class="bi bi-x-octagon-fill fs-3"></i>';
+          }
+          const errorHtml = `
+                <div class="d-flex align-items-center gap-3">
+                    ${icon}
+                    <div><strong>${
+                      type === "warning" ? "Perhatian" : "Kesalahan"
+                    }</strong><br>${message}</div>
+                </div>
+            `;
+          resultPanel.style.display = "block";
+          resultContent.className = `result-card p-3 alert ${alertType} border-0`;
+          resultContent.innerHTML = errorHtml;
+        }
+
+        // --- Event listeners ---
+        checkBtn.addEventListener("click", checkReturnEligibility);
+
+        // Submit form (tekan enter) trigger cek
+        const form = document.getElementById("returnForm");
+        if (form) {
+          form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            checkReturnEligibility();
+          });
+        }
+
+        // Inisialisasi: set contoh tanggal expired (4 bulan dari sekarang) agar mudah diuji
+        if (!expiredDateInput.value) {
+          const demoDate = new Date();
+          demoDate.setMonth(demoDate.getMonth() + 4);
+          const yyyy = demoDate.getFullYear();
+          const mm = String(demoDate.getMonth() + 1).padStart(2, "0");
+          const dd = String(demoDate.getDate()).padStart(2, "0");
+          expiredDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Set default contoh retur: 14 Hari (opsional, tapi agar user lihat contoh)
+        returnValueInput.value = "14";
+        returnUnitSelect.value = "days"; // default hari agar memperlihatkan fitur hari
+      })();
+    </script>
+  </body>
+</html>
